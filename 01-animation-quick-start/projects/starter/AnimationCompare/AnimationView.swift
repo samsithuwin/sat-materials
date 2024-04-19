@@ -34,12 +34,62 @@ import SwiftUI
 
 struct AnimationView: View {
   var animation: AnimationData
+  var slowMotion = false
+
   @Binding var location: Double
+  var currentAnimation: Animation {
+    switch animation.type {
+    case .easeIn:
+      return Animation.easeIn(duration: animation.length)
+    case .easeOut:
+      return Animation.easeOut(duration: animation.length)
+    case .easeInOut:
+      return Animation.easeInOut(duration: animation.length)
+    case .interpolatingSpring:
+      return Animation.interpolatingSpring(
+        // 1
+        mass: animation.mass,
+        // 2
+        stiffness: animation.stiffness,
+        // 3
+        damping: animation.damping,
+        // 4
+        initialVelocity: animation.initialVelocity
+      )
+    case .spring:
+      return Animation.spring(
+        response: animation.response,
+        dampingFraction: animation.dampingFraction
+      )
+
+    default:
+      return Animation.linear(duration: animation.length)
+    }
+  }
+
 
   var body: some View {
     GeometryReader { proxy in
       Group {
-        Text("Animation")
+        HStack {
+          // 1
+          Image(systemName: "gear.circle")
+            .rotationEffect(.degrees(360 * location))
+          Image(systemName: "star.fill")
+            // 2
+            .offset(x: proxy.size.width * location * 0.8)
+        }
+        .font(.title)
+        // 3
+        .animation(
+          currentAnimation
+            .delay(animation.delay)
+            .speed(slowMotion ? 0.25 : 1.0),
+          value: location
+        )
+
+
+
       }
     }
   }
